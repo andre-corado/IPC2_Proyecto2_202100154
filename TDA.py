@@ -1,5 +1,3 @@
-from Cliente import Cliente
-
 class Nodo:
     def __init__(self, dato=None, siguiente=None):
         self.dato = dato
@@ -39,7 +37,7 @@ class Cola:
         self.tiempoDeEsperaAcumulado = 0
         self.len = 0
 
-    def push(self, objeto: Cliente):
+    def push(self, objeto):
         if self.primero is None:
             self.primero = Nodo(dato=objeto)
             self.tiempoDeEsperaAcumulado += self.primero.dato.tiempoDedato
