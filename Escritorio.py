@@ -27,3 +27,10 @@ class Escritorio:
         self.tiempoPromedioAtencion = self.sumaTiempoAtencion / self.numPersonasAtendidas
         self.disponible = True
 
+    def printEstado(self, no):
+        print("----------------------------------------------------------------------\n\t\t\t\t\t\tESCRITORIO No. "
+              + str(no) + self.id + "\nIdentificación: " + self.identificacion + "\t\tEncargado: " + self.encargado +
+              "\n\nTiempo Prom. de Atención: " + str(self.tiempoPromedioAtencion) +
+              "\t\tTiempo Máx. de Atención: " + str(self.tiempoMaximoAtencion) + "\t\tTiempo Mín. de Atención: " +
+              str(self.tiempoMinimoAtencion))
+
