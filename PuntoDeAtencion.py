@@ -1,3 +1,6 @@
+import os
+import webbrowser
+
 from TDA import *
 
 
@@ -229,5 +232,46 @@ class PuntoDeAtencion:
                 i += 1
                 actual.dato.printEstado(i)
                 actual = actual.siguiente
+        self.graficar()
+
+    def graficar(self):
+        actual = self.escritorios.primero
+        graphviz = 'digraph Patron{ \n node[shape = box  fillcolor="#FFEDBB" style=filled]; \n subgraph Cluster_A{ \n label = "' + self.id + " - " + self.nombre + '"   \n fontcolor ="black" \n fontsize = 41 \n bgcolor ="#c6e2e9" \n'
+        graphviz += 'edge[dir="none" style=invisible]'
+        graphviz += 'node' + str(
+            1) + '[label = "' + 'Escritorio más próximo fue el primero en activarse.' + '" fontcolor = "black" fontsize = 20 fillcolor = "#a7bed3" style = filled]; \n'
+
+        noOrden = 2
+        if actual is None:
+            graphviz += 'node' + str(
+                noOrden) + '[label = "' + 'No hay escritorios aún ' + '" fontcolor = "black" fontsize = 20 fillcolor = "#a7bed3" style = filled]; \n'
+
+        while actual:
+            escritorio = actual.dato
+            graphviz += 'node' + str(noOrden) + '[label = "' + "Escritorio" + str(
+                noOrden-1) + '\n________________________________________________________________\n' + '\nId: ' + escritorio.id + ' | Tiempo Pendiente: ' + str(
+                escritorio.tiempoPendiente) + 'Mín Atención: ' + str(escritorio.tiempoMinimoAtencion) +'min | Máx Atención: ' + \
+                        str(escritorio.tiempoMaximoAtencion) +'Promedio Atención: ' + str(escritorio.tiempoPromedioAtencion) + 'min' '" fontcolor = "black" fontsize = 20 fillcolor = "#a7bed3" style = filled]; \n'
+            actual = actual.siguiente
+            noOrden += 1
+        m = 1
+        a = 2
+        for h in range(noOrden - 2):
+            graphviz += 'node{}->node{} \n'.format(m, a)
+            m += 1
+            a += 1
+
+        graphviz += '} \n}'
+
+        document = 'ArchivoAuxiliarGraphViz' + '.txt'
+        with open(document, 'w') as grafica:
+            grafica.write(graphviz)
+
+        item = 1
+        nombre = 'grafica'
+        if item == 1:
+            jpg = 'OrdenAgregada_' + nombre + '.jpg'
+            os.system("dot.exe -Tjpg " + document + " -o " + jpg)
+            webbrowser.open(jpg)
 
 

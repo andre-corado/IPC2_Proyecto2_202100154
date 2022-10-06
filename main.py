@@ -47,16 +47,16 @@ if __name__ == '__main__':
                     input()
                 # Carga de Archivo de Configuración del Sistema
                 elif menuSec == '2':
-                    #ruta = filedialog.askopenfilename(initialdir="/", title="Select file", filetypes=(
-                    #("XML files", "*.xml"), ("All files", "*.*")))
-                    XML.cargarArchivoDeConfiguracionInicial('hola.xml')
+                    ruta = filedialog.askopenfilename(initialdir="/", title="Select file", filetypes=(
+                    ("XML files", "*.xml"), ("All files", "*.*")))
+                    XML.cargarArchivoDeConfiguracionInicial(ruta)
                     print('El archivo ha sido cargado.\nPresione Enter para regresar al menú principal.')
                     input()
                 # Carga de Archivo de Configuración Inicial para la Prueba
                 elif menuSec == '3':
-                    #ruta = filedialog.askopenfilename(initialdir="/", title="Select file", filetypes=(
-                    #    ("XML files", "*.xml"), ("All files", "*.*")))
-                    XML.cargarArchivoDeSimulacion('hola2.xml')
+                    ruta = filedialog.askopenfilename(initialdir="/", title="Select file", filetypes=(
+                        ("XML files", "*.xml"), ("All files", "*.*")))
+                    XML.cargarArchivoDeSimulacion(ruta)
                     print('El archivo ha sido cargado.\nPresione Enter para regresar al menú principal.')
                     input()
                 # Creación de Empresa/Escritorio/Transaccion
@@ -372,4 +372,12 @@ if __name__ == '__main__':
                     input()
                 # Simular Actividad del Punto de Atención
                 elif menuSec == '6':
-                    print('Atención Simulada')
+                    if empresaElegida is None:
+                        print("No se ha elegido alguna empresa aún.")
+                    else:
+                        if puntoDeAtencionElegido is None:
+                            print("No se ha elegido algún punto de atención aún.")
+                        else:
+                            while puntoDeAtencionElegido.cola.primero:
+                                puntoDeAtencionElegido.atenderCliente()
+                            print('Simulación realizada.')
