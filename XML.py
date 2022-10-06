@@ -88,10 +88,7 @@ def cargarArchivoDeSimulacion(ruta):
                     punto.agregarCliente(cliente)
                     print('El cliente ' + nombre + ' ha sido agregado a la cola en el punto de atención ' +
                           punto.nombre + '\n')
-
-
-
-
+                punto.pasarClientesAEscritorios()
 
             else:
                 print(

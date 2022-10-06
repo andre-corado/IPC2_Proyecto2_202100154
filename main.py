@@ -1,13 +1,13 @@
-from TDA import ListaEnlazada
+from tkinter import filedialog
+from Empresa import Empresa
+from Cliente import Cliente
+from Transaccion import Transaccion
+from PuntoDeAtencion import PuntoDeAtencion
+from Escritorio import Escritorio
+from TDA import *
+from DataBase import DB
 import os
-
-
-class DataBase:
-    def __init__(self):
-        self.empresas = ListaEnlazada()
-
-    def agregarEmpresa(self, empresa):
-        self.empresas.insertar(empresa)
+import XML
 
 
 def clearConsola():
@@ -15,8 +15,9 @@ def clearConsola():
 
 
 if __name__ == '__main__':
-    DB = DataBase()
     menuPrin = ''
+    empresaElegida = None
+    puntoDeAtencionElegido = None
     while menuPrin != '4':
         clearConsola()
         menuPrin = menuSec = menuTer = ''
@@ -41,15 +42,21 @@ if __name__ == '__main__':
                     break
                 # Limpieza del Sistema
                 elif menuSec == '1':
-                    DB = DataBase()
+                    DB.restart()
                     print('El sistema se ha limpiado exitosamente.\nPresione Enter para regresar.')
                     input()
                 # Carga de Archivo de Configuración del Sistema
                 elif menuSec == '2':
+                    #ruta = filedialog.askopenfilename(initialdir="/", title="Select file", filetypes=(
+                    #("XML files", "*.xml"), ("All files", "*.*")))
+                    XML.cargarArchivoDeConfiguracionInicial('hola.xml')
                     print('El archivo ha sido cargado.\nPresione Enter para regresar al menú principal.')
                     input()
                 # Carga de Archivo de Configuración Inicial para la Prueba
                 elif menuSec == '3':
+                    #ruta = filedialog.askopenfilename(initialdir="/", title="Select file", filetypes=(
+                    #    ("XML files", "*.xml"), ("All files", "*.*")))
+                    XML.cargarArchivoDeSimulacion('hola2.xml')
                     print('El archivo ha sido cargado.\nPresione Enter para regresar al menú principal.')
                     input()
                 # Creación de Empresa/Escritorio/Transaccion
@@ -63,23 +70,199 @@ if __name__ == '__main__':
                             break
                         # Crear Empresa
                         elif menuTer == '1':
+                            id = ''
+                            while id == '':
+                                clearConsola()
+                                print('Ingrese el id de la Empresa:\n\t\t\t')
+                                id = input()
+                            nombre = ''
+                            while nombre == '':
+                                clearConsola()
+                                print('Ingrese el nombre de la Empresa:\n\t\t\t')
+                                nombre = input()
+                            abrev = ''
+                            while abrev == '':
+                                clearConsola()
+                                print('Ingrese la abreviatura de la Empresa:\n\t\t\t')
+                                abrev = input()
+                            empresa = Empresa(id, nombre, abrev)
+                            DB.agregarEmpresa(empresa)
                             print("Empresa Creada")
                         # Crear Punto de Atención
                         elif menuTer == '2':
-                            print("Punto de Atención Creado")
+                            opcion = ''
+                            clearConsola()
+                            if DB.empresas.primero is None:
+                                print('No existen empresas aún. Presione Enter para regresar.')
+                                input()
+                            else:
+                                empresa = None
+                                while empresa is None:
+                                    try:
+                                        print(DB.getEmpresas())
+                                        print('Elija una empresa:\t\t')
+                                        opcion = input()
+                                        empresa = DB.empresas.getSlot(opcion)
+                                    except:
+                                        print('Debe de ingresar una opción válida.\nPresione Enter para intentar de '
+                                              'nuevo.')
+                                        input()
+                                id = ''
+                                while id == '':
+                                    clearConsola()
+                                    print('Ingrese el id del Punto de Atención:\n\t\t\t')
+                                    id = input()
+                                nombre = ''
+                                while nombre == '':
+                                    clearConsola()
+                                    print('Ingrese el nombre del Punto de Atención:\n\t\t\t')
+                                    nombre = input()
+                                dir = ''
+                                while dir == '':
+                                    clearConsola()
+                                    print('Ingrese la dirección del Punto de Atención:\n\t\t\t')
+                                    dir = input()
+                                puntodeatencion = PuntoDeAtencion(id, nombre, dir)
+                                empresa.agregarPuntoDeAtencion(puntodeatencion)
+                                print("Punto de Atención Creado")
+                                input()
                         # Crear Escritorio
                         elif menuTer == '3':
-                            print("Escritorio Creado")
+                            opcion = ''
+                            clearConsola()
+                            if DB.empresas.primero is None:
+                                print('No existen empresas aún. Presione Enter para regresar.')
+                                input()
+                            else:
+                                empresa = None
+                                while empresa is None:
+                                    try:
+                                        print(DB.getEmpresas())
+                                        print('Elija una empresa:\t\t')
+                                        opcion = input()
+                                        empresa = DB.empresas.getSlot(opcion)
+                                    except:
+                                        print('Debe de ingresar una opción válida.\nPresione Enter para intentar de '
+                                              'nuevo.')
+                                        input()
+                                opcion = ''
+                                clearConsola()
+                                if empresa.puntosDeAtencion.primero is None:
+                                    print(
+                                        'No existen puntos de atención aún en esta empresa. Presione Enter para regresar.')
+                                    input()
+                                else:
+                                    puntodeatencion = None
+                                    while puntodeatencion is None:
+                                        try:
+                                            print(empresa.getPuntosDeAtencion())
+                                            print('Elija un punto de atención:\t\t')
+                                            opcion = input()
+                                            puntodeatencion = empresa.puntosDeAtencion.getSlot(opcion)
+                                        except:
+                                            print(
+                                                'Debe de ingresar una opción válida.\nPresione Enter para intentar de '
+                                                'nuevo.')
+                                            input()
+                                    id = ''
+                                    while id == '':
+                                        clearConsola()
+                                        print('Ingrese el id del escritorio:\n\t\t\t')
+                                        id = input()
+                                    identificacion = ''
+                                    while identificacion == '':
+                                        clearConsola()
+                                        print('Ingrese la identificación del escritorio:\n\t\t\t')
+                                        identificacion = input()
+                                    encargado = ''
+                                    while encargado == '':
+                                        clearConsola()
+                                        print('Ingrese el encargado del escritorio:\n\t\t\t')
+                                        encargado = input()
+                                    escritorio = Escritorio(id, identificacion, encargado)
+                                    puntodeatencion.agregarEscritorio(escritorio)
+                                    print("Escritorio Creado")
                         # Crear Transacción
                         elif menuTer == '4':
+                            opcion = ''
+                            clearConsola()
+                            if DB.empresas.primero is None:
+                                print('No existen empresas aún. Presione Enter para regresar.')
+                                input()
+                            else:
+                                empresa = None
+                                while empresa is None:
+                                    try:
+                                        print(DB.getEmpresas())
+                                        print('Elija una empresa:\t\t')
+                                        opcion = input()
+                                        empresa = DB.empresas.getSlot(opcion)
+                                    except:
+                                        print('Debe de ingresar una opción válida.\nPresione Enter para intentar de '
+                                              'nuevo.')
+                                        input()
+                                id = ''
+                                while id == '':
+                                    clearConsola()
+                                    print('Ingrese el id de la transacción:\n\t\t\t')
+                                    id = input()
+
+                                t = ''
+                                while t == '':
+                                    clearConsola()
+                                    print('Ingrese el tiempo de la transacción:\n\t\t\t')
+                                    t = input()
+                                    try:
+                                        t = int(t)
+                                        if t <= 0:
+                                            t = ''
+                                    except:
+                                        t = ''
+                                        print('Debe de ingresar un número válido.\nPresione Enter para intentar de '
+                                              'nuevo.')
+                                        input()
+                                transaccion = Transaccion(id, t)
+                                empresa.agregarTransaccion(transaccion)
                             print("Transacción Creada")
         # SELECCIÓN DE EMPRESA Y PUNTO DE ATENCIÓN
         elif menuPrin == '2':
-            # Elegir Empresa
-            # Elegir Punto de Atención
-            print('Se ha escogido el punto de atención exitosamente.')
-            print('Presione Enter para regresar al Menú principal.')
-            input()
+            if DB.empresas.primero is None:
+                print('No existen empresas aún. Presione Enter para regresar.')
+                input()
+            else:
+                clearConsola()
+                empresa = None
+                while empresa is None:
+                    try:
+                        print(DB.getEmpresas())
+                        print('Elija una empresa:\t\t')
+                        opcion = input()
+                        empresa = DB.empresas.getSlot(opcion)
+                    except:
+                        print('Debe de ingresar una opción válida.\nPresione Enter para intentar de '
+                              'nuevo.')
+                        input()
+                clearConsola()
+                if empresa.puntosDeAtencion.primero is None:
+                    print('No existen puntos de atención aún en esta empresa. Presione Enter para regresar.')
+                    input()
+                else:
+                    puntodeatencion = None
+                    while puntodeatencion is None:
+                        try:
+                            print(empresa.getPuntosDeAtencion())
+                            print('Elija un punto de atención:\t\t')
+                            opcion = input()
+                            puntodeatencion = empresa.puntosDeAtencion.getSlot(opcion)
+                        except:
+                            print('Debe de ingresar una opción válida.\nPresione Enter para intentar de '
+                                  'nuevo.')
+                            input()
+                    empresaElegida = empresa
+                    puntoDeAtencionElegido = puntodeatencion
+                    print('Se ha escogido el punto de atención exitosamente.')
+                    print('Presione Enter para regresar al Menú principal.')
+                    input()
 
         # MANEJO DE PUNTOS DE ATENCIÓN
         elif menuPrin == '3':
@@ -96,20 +279,97 @@ if __name__ == '__main__':
                     break
                 # Ver estado del punto de atención
                 elif menuSec == '1':
-                    print('ESTADO PUNTO.\nPresione Enter para regresar.')
+                    if puntoDeAtencionElegido is None:
+                        print("No se ha elegido algún punto de atención aún.")
+                    else:
+                        puntoDeAtencionElegido.printEstado()
+                    print('\nPresione Enter para regresar.')
                     input()
                 # Activar Escritorio
                 elif menuSec == '2':
-                    print('Escritorio Activado')
+                    if empresaElegida is None:
+                        print("No se ha elegido alguna empresa aún.")
+                    else:
+                        if puntoDeAtencionElegido is None:
+                            print("No se ha elegido algún punto de atención aún.")
+                        else:
+                            if not puntoDeAtencionElegido.activarEscritorio():
+                                print('No hay escritorios por activar.')
+                    print('\nPresione Enter para regresar.')
+                    input()
                 # Desactivar Escritorio
                 elif menuSec == '3':
-                    print('Escritorio Desactivado')
+                    if empresaElegida is None:
+                        print("No se ha elegido alguna empresa aún.")
+                    else:
+                        if puntoDeAtencionElegido is None:
+                            print("No se ha elegido algún punto de atención aún.")
+                        else:
+                            if not puntoDeAtencionElegido.desactivarEscritorio():
+                                print('No hay escritorios por desactivar.')
+                    print('\nPresione Enter para regresar.')
+                    input()
                 # Atender Cliente
                 elif menuSec == '4':
-                    print('Cliente atendido')
+                    if empresaElegida is None:
+                        print("No se ha elegido alguna empresa aún.")
+                    else:
+                        if puntoDeAtencionElegido is None:
+                            print("No se ha elegido algún punto de atención aún.")
+                        else:
+                            puntoDeAtencionElegido.atenderCliente()
+                    print('\nPresione Enter para regresar.')
+                    input()
                 # Solicitud de Atención
                 elif menuSec == '5':
-                    print('Será atendido pronto')
+                    if empresaElegida is None:
+                        print("No se ha elegido alguna empresa aún.")
+                    else:
+                        if puntoDeAtencionElegido is None:
+                            print("No se ha elegido algún punto de atención aún.")
+                        else:
+                            id = nombre = ''
+                            while id == '':
+                                clearConsola()
+                                print('Ingrese su número de dpi:\n\t\t\t')
+                                id = input()
+                            while nombre == '':
+                                clearConsola()
+                                print('Ingrese su nombre:\n\t\t\t')
+                                nombre = input()
+                            clienteNuevo = Cliente(id, nombre, True)
+
+                            if empresaElegida.transacciones.primero is None:
+                                print('No existen transacciones aún en la empresa elegida. Presione Enter para regresar.')
+                                input()
+                            else:
+                                continuar = False
+                                while not continuar:
+                                    clearConsola()
+                                    trans = None
+                                    while trans is None:
+                                        try:
+                                            print(DB.getTransacciones())
+                                            print('Ingrese 0 para continuar')
+                                            print('Elija una transacción:\t\t')
+                                            opcion = input()
+                                            if opcion == '0':
+                                                continuar = True
+                                                break
+                                            trans = empresaElegida.transacciones.getSlot(opcion)
+                                            print('Ingrese la cantidad deseada:')
+                                            cantidad = int(input())
+                                            clienteNuevo.agregarTransaccion(trans.tiempoAtencion, cantidad)
+                                        except:
+                                            print('Debe de ingresar una opción válida.\nPresione Enter para intentar de '
+                                                  'nuevo.')
+                                            input()
+                                puntoDeAtencionElegido.agregarClienteApp(clienteNuevo)
+
+
+
+                    print('\nPresione Enter para regresar.')
+                    input()
                 # Simular Actividad del Punto de Atención
                 elif menuSec == '6':
                     print('Atención Simulada')

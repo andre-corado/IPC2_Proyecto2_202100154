@@ -27,7 +27,7 @@ class ListaEnlazada:
             actual = self.primero
             while actual:
                 if actual.dato.id == id:
-                    return actual
+                    return actual.dato
                 actual = actual.siguiente
             return None
 
@@ -60,17 +60,17 @@ class Pila:
         if self.primero is None:
             return None
         else:
+            if self.primero.siguiente is None:
+                primero = self.primero.dato
+                self.primero = None
+                return primero
             actual = self.primero
             anterior = None
             while actual and actual.siguiente:
                 anterior = actual
                 actual = actual.siguiente
-            if anterior is None:
-                self.primero = None
-                return actual
-            else:
                 anterior.siguiente = None
-                return
+                return actual.dato
 
     def get(self, id):
         if self.primero is None:
@@ -79,7 +79,7 @@ class Pila:
             actual = self.primero
             while actual:
                 if actual.dato.id == id:
-                    return actual
+                    return actual.dato
                 actual = actual.siguiente
             return None
 
@@ -90,10 +90,10 @@ class Cola:
         self.tiempoDeEsperaAcumulado = 0
         self.len = 0
 
-    def push(self, objeto, tiempoEsperaExtra = 0):
+    def push(self, objeto):
         if self.primero is None:
             self.primero = Nodo(dato=objeto)
-            self.tiempoDeEsperaAcumulado += tiempoEsperaExtra
+            self.tiempoDeEsperaAcumulado += self.primero.dato.tiempoDeAtencion
             self.len += 1
         else:
             actual = self.primero
@@ -101,18 +101,16 @@ class Cola:
                 actual = actual.siguiente
             actual.siguiente = Nodo(dato=objeto)
             self.len += 1
-            self.tiempoDeEsperaAcumulado += tiempoEsperaExtra
+            self.tiempoDeEsperaAcumulado += actual.siguiente.dato.tiempoDeAtencion
 
-    def pop(self, tiempoTranscurrido):
+    def pop(self):
         if self.primero is not None:
             primerNodo = self.primero
             self.primero = self.primero.siguiente
             primerNodo.siguiente = None
-            self.tiempoDeEsperaAcumulado -= primerNodo.dato.tiempoDedato
-            if self.primero:
-                self.actualizarTiemposdeEspera(tiempoTranscurrido)
+            self.tiempoDeEsperaAcumulado -= primerNodo.dato.tiempoDeAtencion
             self.len -= 1
-            return primerNodo
+            return primerNodo.dato
         else:
             return None
 
@@ -127,9 +125,8 @@ class Cola:
             print('___________________________________________________________________________________')
             print('\n\n\t\t\tCliente NO. ' + str(j))
             dato = actual.dato
-            print(f'\nNombre: {dato.nombre}\t\t\tCantidad de Shucos:{str(dato.cantidadShucos)}')
+            print(f'\nNombre: {dato.nombre}\t\t\tTiempo en Espera:{str(dato.tiempoDeEspera)}')
             i = 1
-
             actual = actual.siguiente
         print('___________________________________________________________________________________')
         print('\n\nPresione Enter para regresar.')

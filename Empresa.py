@@ -24,6 +24,17 @@ class Empresa:
                 actual = actual.siguiente
             return txt
 
+    def getTransacciones(self):
+        if self.transacciones.primero is None:
+            return None
+        else:
+            txt = ''
+            actual = self.transacciones.primero
+            while actual is not None:
+                txt += str(actual.id) + '.\tId: ' + actual.dato.id + '\tNombre: ' + actual.dato.nombre + '\n'
+                actual = actual.siguiente
+            return txt
+
     def getPunto(self, idPunto):
         punto = None
         actual = self.puntosDeAtencion.primero

@@ -3,6 +3,7 @@ from TDA import *
 
 class PuntoDeAtencion:
     def __init__(self, id, nombre, direccion):
+        self.primeraVez = True
         self.id = id
         self.nombre = nombre
         self.direccion = direccion
@@ -21,6 +22,8 @@ class PuntoDeAtencion:
         self.tiempoPromedioAtencion = 0
         self.tiempoMaximoAtencion = 0
         self.tiempoMinimoAtencion = 0
+        self.sumaTiempoAtencion = 0
+        self.numClientesAtendidos = 0
 
     def agregarEscritorio(self, escritorio):
         self.escritorios.insertar(escritorio)
@@ -28,32 +31,91 @@ class PuntoDeAtencion:
 
     def agregarCliente(self, cliente):
         self.cola.push(cliente)
-        # Verificar si hay servidor disponible y atender
+
+    def agregarClienteApp(self, cliente):
+        escritorio = None
+        actual = self.escritoriosActivos.primero
+        while actual:
+            if actual.dato.disponible:
+                escritorio = actual.dato
+            actual = actual.siguiente
+
+        if escritorio:
+            self.cola.push(cliente)
+            self.pasarClienteAEscritorio(escritorio)
+            escritorio.cliente.notificarEnApp(escritorio)
+            self.actualizarDataEspera(escritorio.cliente.tiempoDeEspera)
+        else:
+            numCliente = self.cola.len
+            tiempoAEsperar = self.cola.tiempoDeEsperaAcumulado
+            esperaProm = self.tiempoPromedioEspera
+            self.cola.push(cliente)
+            cliente.ventanaEspera(numCliente, tiempoAEsperar, esperaProm)
+
+
+
+    def getMinTiempoAtencion(self):
+        if self.escritoriosActivos.primero:
+            tiempoMin = None
+            actual = self.escritoriosActivos.primero
+            while actual:
+                if actual.dato.cliente:
+                    tiempoPendiente = actual.dato.tiempoPendiente
+                    if tiempoMin is None:
+                        tiempoMin = tiempoPendiente
+                    if tiempoPendiente < tiempoMin:
+                        tiempoMin = tiempoPendiente
+                actual = actual.siguiente
+            return tiempoMin
+        else:
+            return None
 
     def atenderCliente(self):
         # Obtener tiempo transcurrido del tiempo min  de los clientes en los servidores
+        tiempo = self.getMinTiempoAtencion()
+        if tiempo:
+            actual = self.escritoriosActivos.primero
+            self.cola.actualizarTiemposdeEspera(tiempo)
+            while actual:
+                escritorio = actual.dato
+                if escritorio.cliente:
+                    escritorio.tiempoPendiente -= tiempo
+                    if escritorio.tiempoPendiente == 0:
+                        self.sumaTiempoAtencion += escritorio.cliente.tiempoDeAtencion
+                        print('El cliente ' + escritorio.cliente.nombre + ' ha sido atendido.')
+                        escritorio.atenderCliente()
+                        self.numClientesAtendidos += 1
+                        self.actualizarDataAtencion(escritorio)
+                        if self.cola.primero:
+                            self.pasarClienteAEscritorio(escritorio)
+                            if escritorio.cliente.generadoEnApp:
+                                escritorio.cliente.notificarEnApp(escritorio)
+                            self.actualizarDataEspera(escritorio.cliente.tiempoDeEspera)
+                            print('Por favor ' + escritorio.cliente.nombre + ', pasar a escritorio Id: ' + escritorio.id)
+                        else:
+                            escritorio.disponible = True
+                            print('No hay más clientes en cola para llamar.')
+                actual = actual.siguiente
+            if self.cola.primero:
+                self.cola.actualizarTiemposdeEspera(tiempo)
+            self.primeraVez = False
+        else:
+            print('No hay escritorios activos o clientes por atender.')
 
         # Actualizar los tiempos de Atención
 
-        # Verificar si se puede atender a más de un cliente
-        clientePorAtender = self.cola.pop(tiempoTranscurrido=0)
-        self.actualizarDataEspera(clientePorAtender.tiempoDeEspera)
 
     def activarEscritorio(self):
         escritorio = None
         actual = self.escritorios.primero
         while actual:
-            if not actual.dato.activo:
+            if actual.dato.activo is False:
                 escritorio = actual.dato
                 break
             actual = actual.siguiente
 
-        if escritorio:
-            escritorio.activo = True
-            self.escritoriosActivos.push(escritorio)
-            self.numEscritoriosActivos += 1
-            self.numEscritoriosInactivos = self.numEscritorios - self.numEscritoriosActivos
-            print('El escritorio ' + escritorio.id + ' ha sido activado.')
+        if escritorio is not None:
+            self.activarEscritorioEspecifico(escritorio)
             return True
         else:
             return False
@@ -69,16 +131,22 @@ class PuntoDeAtencion:
             print('No existe el escritorio.')
 
     def desactivarEscritorio(self):
-        escritorio = self.escritoriosActivos.pop
+        escritorio = self.escritoriosActivos.pop()
         if escritorio:
             escritorio.activo = False
+            escritorio.disponible = True
+            escritorio.cliente = None
+            escritorio.tiempoPendiente = None
             self.numEscritoriosActivos -= 1
             self.numEscritoriosInactivos = self.numEscritorios - self.numEscritoriosActivos
+            print('Escritorio ID: ' + escritorio.id + ' ha sido desactivado.')
             return True
         else:
             return False
 
     def actualizarDataEspera(self, tiempoEsperaCliente):
+        if self.tiempoMinimoEspera == 0:
+            self.tiempoMinimoEspera = tiempoEsperaCliente
         if tiempoEsperaCliente < self.tiempoMinimoEspera:
             self.tiempoMinimoEspera = tiempoEsperaCliente
         elif tiempoEsperaCliente > self.tiempoMaximoEspera:
@@ -87,6 +155,21 @@ class PuntoDeAtencion:
         self.sumaTiempoEspera += tiempoEsperaCliente
         self.numClientesLlegadosDeEspera += 1
         self.tiempoPromedioEspera = self.sumaTiempoEspera / self.numClientesLlegadosDeEspera
+
+    def actualizarDataAtencion(self, escritorio):
+        if self.escritoriosActivos.primero:
+            actual = self.escritoriosActivos.primero
+            while actual:
+                escritorio = actual.dato
+                if self.tiempoMinimoAtencion == 0:
+                    self.tiempoMinimoAtencion = escritorio.tiempoMinimoAtencion
+                if escritorio.tiempoMinimoAtencion < self.tiempoMinimoAtencion:
+                    self.tiempoMinimoAtencion = escritorio.tiempoMinimoAtencion
+                elif escritorio.tiempoMaximoAtencion > self.tiempoMaximoAtencion:
+                    self.tiempoMaximoAtencion = escritorio.tiempoMaximoAtencion
+
+                self.tiempoPromedioAtencion = (self.sumaTiempoAtencion / self.numClientesAtendidos)
+                actual = actual.siguiente
 
     def getEscritorio(self, idEscritorio):
         escritorio = None
@@ -110,6 +193,20 @@ class PuntoDeAtencion:
                 actual = actual.siguiente
             return txt
 
+    def pasarClienteAEscritorio(self, escritorio):
+        cliente = self.cola.pop()
+        self.actualizarDataEspera(cliente.tiempoDeEspera)
+        escritorio.asignarCliente(cliente)
+
+    def pasarClientesAEscritorios(self):
+        actual = self.escritoriosActivos.primero
+        while actual:
+            if actual.dato.activo:
+                if self.cola.primero:
+                    cliente = self.cola.pop()
+                    actual.dato.asignarCliente(cliente)
+            actual = actual.siguiente
+
     def printEstado(self):
         print("\n\t\t\t\t\t\tPUNTO DE ATENCIÓN:\t " + self.nombre + "\nId: " + self.id + "\t\tDirección: " +
               self.direccion + "\n\nEscritorios Activos: " + str(self.numEscritoriosActivos) +
@@ -128,7 +225,9 @@ class PuntoDeAtencion:
                 print("El número mayor fue el último en activarse.\n")
             i = 0
             actual = self.escritoriosActivos.primero
-            while actual:
+            while actual is not None:
                 i += 1
                 actual.dato.printEstado(i)
                 actual = actual.siguiente
+
+
